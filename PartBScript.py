@@ -19,7 +19,10 @@ This program is for the assignment set of financial derivatives Part B, where a 
 "Excel Part"
 
 import pandas as pd
+import numpy as np
 
 xls = pd.ExcelFile('Crude Oil - Gold Data.xls')
 goldfut = xls.parse('Gold')
 cofut = xls.parse('Crude oil')
+
+
