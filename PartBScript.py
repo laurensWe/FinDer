@@ -20,9 +20,15 @@ This program is for the assignment set of financial derivatives Part B, where a 
 
 import pandas as pd
 import numpy as np
+import scipy.stats as st
+
+
 
 xls = pd.ExcelFile('Crude Oil - Gold Data.xls')
 goldfut = xls.parse('Gold')
 cofut = xls.parse('Crude oil')
 
+cofut.plot(x='Date', y='Price')
+daily_vol = cofut.std()
+maintenance = st.norm.ppf(.99)*np.sqrt(3)*daily_vol
 
