@@ -7,9 +7,14 @@ This program is for the assignment set of financial derivatives Part B, where a 
 @author: LARO
 """
 
-import quandl
 
-WheatData = quandl.get("CHRIS/CME_W5", ticker='AAPL')
-df = WheatData.loc['2013-01-01':'2016-09-02', 'Open']
+" Quanld Part "
+##import quandl
 
-df.plot()
+## WheatData = quandl.get("CHRIS/CME_W1", ticker='AAPL')
+## df = WheatData.loc['2013-01-01':'2016-09-02', 'Open']
+
+## df.plot()
+
+
+"Excel Part"
