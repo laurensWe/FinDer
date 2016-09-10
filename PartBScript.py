@@ -7,12 +7,6 @@ This program is for the assignment set of financial derivatives Part B, where a 
 @author: LARO
 """
 
-<<<<<<< HEAD
-=======
-import quandl
-import numpy as np
->>>>>>> 01b07bc77cf3d1f406288efabfa3211151c81e7c
-
 " Quanld Part "
 ##import quandl
 
@@ -23,3 +17,9 @@ import numpy as np
 
 
 "Excel Part"
+
+import pandas as pd
+
+xls = pd.ExcelFile('Crude Oil - Gold Data.xls')
+goldfut = xls.parse('Gold')
+cofut = xls.parse('Crude oil')
