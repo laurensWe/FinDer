@@ -8,6 +8,7 @@ This program is for the assignment set of financial derivatives Part B, where a 
 """
 
 import quandl
+import numpy as np
 
 WheatData = quandl.get("CHRIS/CME_W5", ticker='AAPL')
 df = WheatData.loc['2013-01-01':'2016-09-02', 'Open']
