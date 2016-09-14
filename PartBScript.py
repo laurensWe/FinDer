@@ -2,7 +2,8 @@
 """
 Created on Mon Sep  5 09:44:10 2016
 
-This program is for the assignment set of financial derivatives Part B, where a simulation of an portfolio of futures will be executed.
+This program is for the assignment set of financial derivatives Part B,
+ where a simulation of an portfolio of futures will be executed.
 
 @author: LARO
 """
@@ -52,7 +53,8 @@ ContractSize = 1000
 
 initialIndex = 648
 
-for num in range(initialIndex,initialIndex + 105):  #648 is the index for 2008-09-02 and 754 is the index for 2009-02-02
+#648 is the index for 2008-09-02 and 754 is the index for 2009-02-02
+for num in range(initialIndex,initialIndex + 105):  
     DiffMargin = cofut['Change'][num+1] * ContractSize
     Difference.append(DiffMargin)
     tempMargin = Margin[num - initialIndex] + DiffMargin
@@ -60,10 +62,14 @@ for num in range(initialIndex,initialIndex + 105):  #648 is the index for 2008-0
     if tempMargin < MainteReq:
         MarginExcess.append(tempMargin)
         AmountMarginCalls = AmountMarginCalls + 1
-        Margin.append(InitialAc)   # if the maintenance requirement has been reached, the margin account should be filled to the initial margin value.
+        # if the maintenance requirement has been reached, 
+        # the margin account should be filled to the initial margin value.
+        Margin.append(InitialAc)   
     elif tempMargin > InitialAc:
-        MarginExcess.append(tempMargin)        
-        Margin.append(InitialAc)   # If the Max (Initial Margin) has been reached, the money will be deposited on your account.
+        MarginExcess.append(tempMargin)  
+        # If the Max (Initial Margin) has been reached,
+        # ++++++++++++++the money will be deposited on your account.
+        Margin.append(InitialAc)   
         retrieve = retrieve + 1
     else:
         Margin.append(tempMargin)
