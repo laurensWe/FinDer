@@ -86,7 +86,3 @@ plt.axhline(y=InitialAc, color='r',label='Initial Account')
 plt.axhline(y=MainteReq, color='r',label='Maintenance Requirement')
 plt.ylim(ymin=65000 ,ymax=105000) 
     
-    
-
-
-
