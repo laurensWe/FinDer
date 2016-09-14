@@ -21,16 +21,17 @@ This program is for the assignment set of financial derivatives Part B, where a 
 import pandas as pd
 import numpy as np
 import scipy.stats as st
+import matplotlib.pyplot as plt
 
 xls = pd.ExcelFile('Crude Oil - Gold Data.xls')
 goldfut = xls.parse('Gold')
 cofut = xls.parse('Crude oil')
 
-names = cofut.columns.tolist()
-names[names.index('Price')] = 'Crude Oil Future Price (in dollar)'
-cofut.columns = names
+#names = cofut.columns.tolist()
+#names[names.index('Price')] = 'Crude Oil Future Price (in dollar)'
+#cofut.columns = names
 
-cofut.plot(x='Date', y='Crude Oil Future Price (in dollar)')
+#cofut.plot(x='Date', y='Price')
 daily_vol = cofut.std()
 maintenance = st.norm.ppf(.99)*np.sqrt(3)*daily_vol
 
@@ -45,6 +46,7 @@ MainteReq = 73590
 AmountMarginCalls = 0
 retrieve = 0
 Margin = [98120]
+MarginExcess = [98120]
 Difference = [0]
 ContractSize = 1000
 
@@ -56,18 +58,33 @@ for num in range(initialIndex,initialIndex + 105):  #648 is the index for 2008-0
     tempMargin = Margin[num - initialIndex] + DiffMargin
     
     if tempMargin < MainteReq:
+        MarginExcess.append(tempMargin)
         AmountMarginCalls = AmountMarginCalls + 1
         Margin.append(InitialAc)   # if the maintenance requirement has been reached, the margin account should be filled to the initial margin value.
     elif tempMargin > InitialAc:
+        MarginExcess.append(tempMargin)        
         Margin.append(InitialAc)   # If the Max (Initial Margin) has been reached, the money will be deposited on your account.
         retrieve = retrieve + 1
     else:
         Margin.append(tempMargin)
+        MarginExcess.append(tempMargin)
+        
+MarginExcess2 = pd.DataFrame(MarginExcess, columns=['Data'])
+MarginExcess2['Date'] = 1
+for num in range(initialIndex,initialIndex + 106):
+    MarginExcess2['Date'][num-648] = np.datetime64(cofut['Date'][num])
 
 #%% Mooie plotjes van de Margin Account
-
-pd.DataFrame(Margin).plot()
-        
+#pd.DataFrame(Margin).plot()
+#pd.DataFrame(MarginExcess).plot()
+#t = linspace(MainteReq,MainteReq,106)
+MarginExcess2.plot(x='Date',y='Data',label='Margin Account level')
+plt.plot(MarginExcess2)
+plt.ylabel('Level of the Margin Account (in $)')
+plt.xlabel('Date of time (daily)')
+plt.axhline(y=InitialAc, color='r',label='Initial Account')
+plt.axhline(y=MainteReq, color='r',label='Maintenance Requirement')
+plt.ylim(ymin=65000 ,ymax=105000) 
     
     
 
