@@ -32,3 +32,12 @@ s_T_tc = s_zero*np.exp(-0.5*np.square(vol_tc)+vol_tc*e)
 price_call_tc = np.fmax(s_T_tc-k, 0)  
 print ("Call price with tc = ", np.mean(price_call_tc))
 
+#Exotic Option
+for i in range(0, num_simulations):
+    if s_T[i] < k:
+        price_exotic[i] = s_T[i]
+    else:
+        price_exotic[i] = 0
+        
+print ("Exotic price= ", np.mean(price_exotic))
+    
