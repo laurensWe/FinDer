@@ -13,3 +13,4 @@ c = int(repr(S1)[-1])/100
 s_zero = round(5*(int(repr(S2)[-1])+int(repr(S3)[-1]))/2)
 k = s_zero
 vol = max(0.15, int(repr(S4)[-1])/20) 
+
