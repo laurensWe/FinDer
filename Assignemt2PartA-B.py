@@ -13,17 +13,22 @@ S0 = K = round(5*(S2+S3)/2)
 c = S1/100
 sigma = max(0.15, S4/20)
 
-def recursivePrice(K,r=0,kind='E',pc='C'):
+def recursivePrice(K,r,kind,pc):
     fun = lambda Pu,Pd,Su,Sd,S: (S-np.exp(-r)*Su)*(Pu-Pd)/(Su-Sd)+np.exp(-r)*Pu
-    if kind=='E':
-        return fun
+    if kind=='E' and pc=='C':
+        return lambda Pu,Pd,Su,Sd,S: fun(Pu,Pd,Su,Sd,S)
+    elif kind=='E' and pc=='P':
+        return lambda Pu,Pd,Su,Sd,S: fun(Pd,Pu,Su,Sd,S) # switch Pu/Pd places
     elif kind=='A' and pc=='P':
-        return lambda Pu,Pd,Su,Sd,S: max(K-S,fun(Pu,Pd,Su,Sd,S))
+        return lambda Pu,Pd,Su,Sd,S: max(K-S,fun(Pd,Pu,Su,Sd,S))
     else:
         return lambda Pu,Pd,Su,Sd,S: max(S-K,fun(Pu,Pd,Su,Sd,S))
         
-def finalPrice(K, pc='P'):
-    return lambda S: max(0,K-S) if pc=='P' else lambda S:max(0,S-K)
+def finalPrice(K, pc):
+    if pc=='P':
+        return lambda S: max(0,K-S)  
+    else:
+        return lambda S:max(0,S-K)
  
 def assetTree(S,mu,sigma,N):
     price = lambda u,d: S*np.exp(mu*(u+d)+sigma*np.sqrt(u)-sigma*np.sqrt(d))
@@ -39,13 +44,12 @@ def tree(S,K,sigma,mu=0,N=1,r=0,kind='E',pc='P'):
     # option trees final values
     option[-1].extend([finalPrice(K,pc)(S) for S in asset[-1]])
     # recur through the option tree
+    recur = recursivePrice(K,r,kind,pc)
     for i in range(N,0,-1):
-        recur = recursivePrice(r,K,kind,pc)
-        zipped = zip(option[i][1:],option[i][:-1],asset[i][1:],asset[i][:-1],asset[i-1])
+        zipped = zip(option[i][:-1],option[i][1:],asset[i][:-1],asset[i][1:],asset[i-1])
         option[i-1].extend([recur(Pu,Pd,Su,Sd,S) for Pu,Pd,Su,Sd,S in zipped])
     # finalize and return
-    deepRound = lambda y: deepMap(lambda x: round(x,2),y)
-    return [deepRound(asset),deepRound(option)]
+    return asset,option
         
 def printTree(tree):
     for line in tree:
@@ -53,7 +57,7 @@ def printTree(tree):
         print(*map('{:9.2f}'.format, line))        
         
 if __name__=='__main__':
-    asset, option = tree(S0, K, sigma, N=4)
+    asset, option = tree(S0, K, sigma, N=4, kind='A', pc='C')
     printTree(asset)
     print('\n\n')
     printTree(option)
