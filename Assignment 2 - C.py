@@ -15,6 +15,7 @@ s_zero = round(5*(int(repr(S2)[-1])+int(repr(S3)[-1]))/2)
 k = s_zero
 vol = max(0.15, int(repr(S4)[-1])/20) 
 
+<<<<<<< HEAD
 num_simulations = 1000000
 
 e = np.random.normal(0, 1, num_simulations)
@@ -30,3 +31,5 @@ vol_tc = np.sqrt(vol*(1+(2*c*np.sqrt(n))/vol))
 s_T_tc = s_zero*np.exp(-0.5*np.square(vol_tc)+vol_tc*e)
 price_call_tc = np.fmax(s_T_tc-k, 0)  
 print ("Call price with tc = ", np.mean(price_call_tc))
+=======
+>>>>>>> 680d72fde295c64399af0dddc3473f4977dfc492
