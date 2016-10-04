@@ -29,19 +29,23 @@ n = 250     # will be the number of readjustments  because we hold the stock a y
             # and it will be continuous time, every trading day (250 per year)
             # the self-financing portfolio will be readjusted in order to mimic 
             # the claim.
+#%% regular call with Black Scholes model
 
 vol_tilde = np.sqrt(vol*(1+(2*c*np.sqrt(n))/(vol*np.sqrt(T)))) 
 
+#For the case where the transaction costs are taken into account change all the vol's in the next LOC
+#into vol_tilde.
+
 for i in range(0,R):
-    S[0,i]= S0*np.exp((r-(np.square(vol_tilde))/2)*T +vol_tilde*np.sqrt(T)*np.random.normal(0,1))
+    S[0,i]= S0*np.exp((r-(np.square(vol))/2)*T +vol*np.sqrt(T)*np.random.normal(0,1))
     X[0,i] = np.maximum((S[0,i]-K),0)
     V[0,i] = np.exp(-r*T)*X[0,i]
 Vhat = np.mean(V)
 print(Vhat)
 
 # analytical closed form expression of the Black Scholes model
-part1 =  S0*norm.cdf((np.log(S0/K) + (r + 0.5*(np.power(vol_tilde,2))*T))/(vol_tilde*np.sqrt(T)))
-part2 = K*np.exp((-r*T))*norm.cdf((np.log(S0/K)+ (r - 0.5*(np.power(vol_tilde,2))*T))/(vol_tilde*np.sqrt(T))) 
+part1 =  S0*norm.cdf((np.log(S0/K) + (r + 0.5*(np.power(vol,2))*T))/(vol*np.sqrt(T)))
+part2 = K*np.exp((-r*T))*norm.cdf((np.log(S0/K)+ (r - 0.5*(np.power(vol,2))*T))/(vol*np.sqrt(T))) 
 V_ana = part1-part2
 print(V_ana)
 
@@ -57,5 +61,6 @@ for i in range(0,R):
 Vhat = np.mean(V)
 print(Vhat)
 
-
-
+# analytical closed form expression of the Black Scholes model when pricing an Asset-or-Nothing put
+V_ana = S0*np.exp(-r*T)*norm.cdf(-((np.log(S0/K) + (r+0.5*vol**2)*T)/(vol*np.sqrt(T))))
+print(V_ana)
