@@ -62,5 +62,5 @@ Vhat = np.mean(V)
 print(Vhat)
 
 # analytical closed form expression of the Black Scholes model when pricing an Asset-or-Nothing put
-V_ana = S0*np.exp(-r*T)*norm.cdf(-((np.log(S0/K) + (r+0.5*vol**2)*T)/(vol*np.sqrt(T))))
+V_ana = S0*norm.cdf(-((np.log(S0/K) + (r+0.5*vol**2)*T)/(vol*np.sqrt(T))))
 print(V_ana)
