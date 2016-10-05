@@ -15,18 +15,18 @@ class OptionPricer(object):
         self.fillTree(S,K,sigma,c,N,ls,self.tree)
         
     def replicatingPortfolio(self,c,ls): 
-        cu,cd = (1+c,1-c) if ls=='long' else (1-c,1+c)
-        def xyf(s,su,yu,xu,sd,yd,xd): 
+        def xyf(t,s,su,yu,xu,sd,yd,xd): 
+            cu,cd = (1+c,1-c) if ls=='long' or t+1<self.N else (1-c,1+c)
             y = (xu-xd+yu*su*cu-yd*sd*cd)/(su*cu-sd*cd)
             x =  xd+(yd-y)*sd*cd 
             f = x + y*s
             return {'x':x,'y':y,'f':f}
-        return xyf
+        return xyf 
         
     def setFinalPrice(self,K,tree,N,ls):
         for i in tree[N]:
             S = tree[N][i]['S']
-            S_= tree[N-1][i-np.sign(i)]['S']
+            S_= tree[N-1][i+1 if i<N else i-1]['S']
             if ls=='long':
                 tree[N][i].update({'f':max(0,S-K),'x':-float(S>K)*S_,'y':float(S>K)})
             else:
@@ -41,7 +41,7 @@ class OptionPricer(object):
         recur = self.replicatingPortfolio(c,ls)
         for t in range(N-1,-1,-1):
             for i in tree[t]:
-                tree[t][i].update(recur(tree[t][i]['S'],  #S
+                tree[t][i].update(recur(t,tree[t][i]['S'],  #S
                                      tree[t+1][i+1]['S'], #Su
                                      tree[t+1][i+1]['y'], #yu
                                      tree[t+1][i+1]['x'], #xu
@@ -63,8 +63,15 @@ class OptionPricer(object):
                         out += ' '*12
         return out
     
+    def price(self):
+        return round(self.tree[0][0]['f'],2)
+    
 if __name__=='__main__':
-    op = OptionPricer(S=S0,K=K,sigma=sigma,c=c,N=5,ls='short')
+    op = OptionPricer(S=S0,K=K,sigma=sigma,c=c,N=10,ls='short')
     s=op.toString()#(S0, K, sigma, c=c, N=1)
+    option_price = op.price()
+    n=1
+    Along = OptionPricer(10,10,.2,.1,n,'long').price()
+    Ashort= OptionPricer(10,10,.2,.1,n,'short').price()
     
      
