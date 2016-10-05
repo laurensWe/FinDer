@@ -7,61 +7,64 @@ S0 = K = round(5*(S2+S3)/2)
 c = S1/100
 sigma = max(0.15, S4/20)
 
-# assuming that executing an option means spending transaction cost twice
-def recursivePrice(K,c,r,kind,pc):
-    fun = lambda Pu,Pd,Su,Sd,S: (S-np.exp(-r)*Su)*(Pu-Pd)/(Su-Sd)+np.exp(-r)*Pu
-    if kind=='E':
-        return fun
-    elif kind=='A' and pc=='put':
-        return lambda Pu,Pd,Su,Sd,S: max(K-S-2*c,fun(Pu,Pd,Su,Sd,S))
-    else:
-        return lambda Pu,Pd,Su,Sd,S: max(S-K-2*c,fun(Pu,Pd,Su,Sd,S))
+class OptionPricer(object):
+    def __init__(self,S,K,sigma,c=0,N=1,ls='long'):
+        self.N = N
+        self.tree = self.initTree(S,sigma,N)
+        self.setFinalPrice(K,self.tree,N,ls)
+        self.fillTree(S,K,sigma,c,N,ls,self.tree)
         
-def finalPrice(K, c, pc, S):
-    if pc=='put':
-        return max(0,K-S-2*c)  
-    else:
-        return max(0,S-K-2*c)
- 
-def assetTree(S,mu,sigma,N):
-    price = lambda u,d: S*np.exp(mu*(u+d)+sigma*np.sqrt(u)-sigma*np.sqrt(d))
-    return [[price(t-i,i) for i in range(t+1)] for t in range(N+1)]
-    
-def deepMap(fun,vec):
-    return [*map(lambda x: [*map(fun,x)],vec)]
-    
-def tree(S,K,sigma,c=0,mu=0,N=1,r=0,kind='E',pc='put'):
-    # inits of asset and option trees
-    asset = assetTree(S,mu,sigma/N,N)
-    option = [[] for i in range(N+1)]
-    # option trees final values
-    option[-1].extend([finalPrice(K,c,pc,S) for S in asset[-1]])
-    # recur through the option tree
-    recur = recursivePrice(K,c,r,kind,pc)
-    for i in range(N,0,-1):
-        zipped = zip(option[i][:-1],option[i][1:],asset[i][:-1],asset[i][1:],asset[i-1])
-        option[i-1].extend([recur(Pu,Pd,Su,Sd,S) for Pu,Pd,Su,Sd,S in zipped])
-    # finalize and return
-    return asset,option
-    
-def profit(option, ls='long'):
-    if ls=='long':
-        return [o - option[0][0] for o in option[-1]]
-    else:
-        return [option[0][0] - o for o in option[-1]]
+    def replicatingPortfolio(self,c,ls): 
+        cu,cd = (1+c,1-c) if ls=='long' else (1-c,1+c)
+        def xyf(s,su,yu,xu,sd,yd,xd): 
+            y = (xu-xd+yu*su*cu-yd*sd*cd)/(su*cu-sd*cd)
+            x =  xd+(yd-y)*sd*cd 
+            f = x + y*s
+            return {'x':x,'y':y,'f':f}
+        return xyf
         
-def printTree(tree, profit = None):
-    for line in tree:
-        print('time {:3d}:'.format(len(line)-1)+'     '*(len(tree)-len(line)),end='')
-        print(*map('{:9.2f}'.format, line))   
-    if profit is not None:
-        print('profit  :', end='')
-        print(*map('{:9.2f}'.format, profit))
-        
+    def setFinalPrice(self,K,tree,N,ls):
+        for i in tree[N]:
+            S = tree[N][i]['S']
+            S_= tree[N-1][i-np.sign(i)]['S']
+            if ls=='long':
+                tree[N][i].update({'f':max(0,S-K),'x':-float(S>K)*S_,'y':float(S>K)})
+            else:
+                tree[N][i].update({'f':-max(0,S-K),'x':float(S>K)*S_,'y':-float(S>K)})
+     
+    def initTree(self,S,sigma,N):
+        price = lambda u,d: S*np.exp(sigma*np.sqrt(u/N)-sigma*np.sqrt(d/N))
+        return {t:{t-2*i:{'S':price(t-i,i)} for i in range(t+1)} for t in range(N+1)}
+      
+    def fillTree(self,S,K,sigma,c,N,ls,tree):
+        # recur through the option tree
+        recur = self.replicatingPortfolio(c,ls)
+        for t in range(N-1,-1,-1):
+            for i in tree[t]:
+                tree[t][i].update(recur(tree[t][i]['S'],  #S
+                                     tree[t+1][i+1]['S'], #Su
+                                     tree[t+1][i+1]['y'], #yu
+                                     tree[t+1][i+1]['x'], #xu
+                                     tree[t+1][i-1]['S'], #Sd
+                                     tree[t+1][i-1]['y'], #yd
+                                     tree[t+1][i-1]['x']))#xd
+        return tree
+                 
+    def toString(self):
+        out = ''
+        for i in range(self.N,-self.N-1,-1):
+            out += '\r\n----'+ '-'*(self.N+1)*12 
+            for p in ['S','f','x','y']:
+                out += '\r\n{: 2d}: '.format(i)
+                for t in self.tree:
+                    if i in self.tree[t]:
+                        out += ' '*3 + '{}{:8.2f}'.format(p,self.tree[t][i][p])
+                    else:
+                        out += ' '*12
+        return out
+    
 if __name__=='__main__':
-    #TODO: sigma schalen met N
-    asset, option = tree(S0, K, sigma, c=c, N=1, kind='E', pc='call')
-    printTree(asset)
-    print('\n\n')
-    printTree(option,profit(option,'long'))
+    op = OptionPricer(10,10,sigma=.2,c=.1,N=5,ls='short')
+    s=op.toString()#(S0, K, sigma, c=c, N=1)
+    
      
