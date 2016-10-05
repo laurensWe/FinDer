@@ -64,7 +64,7 @@ class OptionPricer(object):
         return out
     
 if __name__=='__main__':
-    op = OptionPricer(10,10,sigma=.2,c=.1,N=5,ls='short')
+    op = OptionPricer(S=S0,K=K,sigma=sigma,c=c,N=5,ls='short')
     s=op.toString()#(S0, K, sigma, c=c, N=1)
     
      
