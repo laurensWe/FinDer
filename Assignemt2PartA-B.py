@@ -4,7 +4,7 @@ S2 = 5 # 366515 - Laurens Weijs
 S3 = 5 # 384825 - Jinchen Li
 S4 = 9 # 388049 - Sebastiaan Vermeulen
 S0 = K = round(5*(S2+S3)/2)
-c = S1/100
+C = S1/100
 sigma = max(0.15, S4/20)
 
 class OptionPricer(object):
@@ -36,6 +36,9 @@ class OptionPricer(object):
         t['0']['y'] = (t['u']['x']-t['d']['x']+t['u']['y']*t['u']['S']*cu-t['d']['y']*t['d']['S']*cd)/(t['u']['S']*cu-t['d']['S']*cd)
         t['0']['x'] =  t['d']['x']+(t['d']['y']-t['0']['y'])*t['d']['S']*cd 
         t['0']['f'] = t['0']['x'] + t['0']['y']*t['0']['S']
+    
+    def price(self):
+        return abs(round(self.tree[0][0]['f'],2))
                  
     def toString(self):
         out = ''
@@ -45,32 +48,63 @@ class OptionPricer(object):
                 out += '\r\n{: 2d}: '.format(i)
                 for t in self.tree:
                     if i in self.tree[t]:
-                        out += ' '*3 + '{}{:8.2f}'.format(p,self.tree[t][i][p])
+                        out += ' '*3 + '{}{:8.2g}'.format(p,self.tree[t][i][p])
                     else:
                         out += ' '*12
         return out
     
-    def price(self):
-        return round(self.tree[0][0]['f'],2)
-    
 if __name__=='__main__':
-    op = OptionPricer(S=S0,K=K,sigma=sigma,c=c,N=2,ls='short')
-    s=op.toString()#(S0, K, sigma, c=c, N=1)
-    option_price = op.price()
-    n=1
-    Along = OptionPricer(10,10,.2,.1,n,'long').price()
-    Ashort= OptionPricer(10,10,.2,.1,n,'short').price()
+    np.seterr(invalid='raise')
+    op = OptionPricer(S=S0,K=K,sigma=sigma,c=C,N=1,ls='long').price()
     
-    s=OptionPricer(10,10,.2,.1,n,'short').toString()    
+    x = np.arange(1,100)    
+    y = [OptionPricer(S=S0,K=K,sigma=sigma,c=C,N=n,ls='long').price() for n in x]
+    z = [OptionPricer(S=S0,K=K,sigma=sigma,c=0,N=n,ls='long').price() for n in x]
     
-    from matplotlib import pyplot as plt
-    x = np.arange(1,5)
-    y = [OptionPricer(10,10,.2,.1,n,'short').price() for n in x]
-    z = [OptionPricer(10,10,.2,.1,n,'long').price() for n in x]
-    plt.xkcd()
-    plt.plot(x,y,c='r')
-    plt.plot(x,z,c='k')
-    plt.xlabel('no. of ticks per time unit')
-    plt.ylabel('bid-ask spread')
-    plt.title('long vs short on Euro call options')
-     
+    from matplotlib import pyplot as plt,style
+    style.use('seaborn-whitegrid')
+    plt.close('all')
+    
+    x = np.arange(.01,1,.05)
+    y = [OptionPricer(S=S0,K=K,sigma=s,c=C,N=50,ls='long').price() for s in x]
+    plt.plot(x,y)
+    plt.xlabel('volatility')
+    plt.ylabel('Option price')
+    
+    x = np.arange(.01,.20,.01)
+    y = [OptionPricer(S=S0,K=K,sigma=sigma,c=c,N=50,ls='long').price() for c in x]
+    plt.plot(x,y)
+    plt.xlabel('transaction cost')
+    plt.ylabel('Option price')
+    
+    
+    if False:
+        s=sigma;c=C;k=K;
+        y = [OptionPricer(S=S0,K=K,sigma=s,c=c,N=n,ls='long').price() for n in x]
+        plt.plot(x,y,linewidth=5,label='c: {:2.0%} $\sigma$: {:.2f} K:{:d}'.format(c,s,k))
+        
+        s=sigma;c=0;k=K;
+        y = [OptionPricer(S=S0,K=K,sigma=s,c=c,N=n,ls='long').price() for n in x]
+        plt.plot(x,y,label='c: {:2.0%} $\sigma$: {:.2f} K:{:d}'.format(c,s,k))
+        
+        s=sigma*2;c=C;k=K;
+        y = [OptionPricer(S=S0,K=K,sigma=s,c=c,N=n,ls='long').price() for n in x]
+        plt.plot(x,y,label='c: {:2.0%} $\sigma$: {:.2f} K:{:d}'.format(c,s,k))
+        
+        s=sigma*2;c=0;k=K;
+        y = [OptionPricer(S=S0,K=K,sigma=s,c=c,N=n,ls='long').price() for n in x]
+        plt.plot(x,y,label='c: {:2.0%} $\sigma$: {:.2f} K:{:d}'.format(c,s,k))
+        
+        s=sigma;c=C;k=K+5
+        y = [OptionPricer(S=S0,K=k,sigma=s,c=c,N=n,ls='long').price() for n in x]
+        plt.plot(x,y,label='c: {:2.0%} $\sigma$: {:.2f} K:{:d}'.format(c,s,k))
+        
+        s=sigma;c=C;k=K-5
+        y = [OptionPricer(S=S0,K=k,sigma=s,c=c,N=n,ls='long').price() for n in x]
+        plt.plot(x,y,label='c: {:2.0%} $\sigma$: {:.2f} K:{:d}'.format(c,s,k))
+        
+        plt.xlabel('no. of ticks per time unit')
+        plt.ylabel('price')
+        plt.legend(title='parameters')
+        #plt.savefig('C:/users/ms/desktop/{}.png')
+         
